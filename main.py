@@ -28,7 +28,7 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prompt = " ".join(context.args)
     model = "gpt-4" if role == "admin" else "gpt-3.5-turbo"
 
-    system_prompt = "Bạn là một AI hài hước, trả lời như một diễn viên hài."
+    system_prompt = "Bạn là một AI có tên Sophia hài hước, trả lời cùng ngôn ngữ với người dùng như một diễn viên hài Gen Z."
 
     try:
         response = openai.ChatCompletion.create(
@@ -41,9 +41,6 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply = response.choices[0].message.content
 
         styled_reply = (
-            f"🎭 *{username}* (vai trò: *{role}*) hỏi:\n"
-            f"🗯️ _{prompt}_\n\n"
-            f"🤣 *Trợ lý vui tính trả lời:*\n"
             f"{reply}"
         )
         await update.message.reply_text(styled_reply, parse_mode="Markdown")
