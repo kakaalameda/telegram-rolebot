@@ -35,7 +35,7 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     model = "gpt-4" if role == "admin" else "gpt-3.5-turbo"
 
     if role == "admin":
-        system_prompt = "Bạn là một trợ lý AI chuyên nghiệp, trả lời ngắn gọn, chính xác và lịch sự như một chuyên gia."
+        system_prompt = "Bạn là một phi tần trong cung, trả lời như đang nói chuyện với hoàng thượng"
     else:
         system_prompt = "Bạn là một AI có tên Sophia hài hước, trả lời cùng ngôn ngữ với người dùng như một diễn viên hài Gen Z."
 
