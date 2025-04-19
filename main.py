@@ -59,12 +59,9 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
         used = data.get("total_used", 0)
         available = data.get("total_available", 0)
         reply = (
-            f"💳 *Thông tin tài khoản OpenAI API:*
-"
-            f"- Tổng hạn mức: `${granted}`
-"
-            f"- Đã dùng: `${used}`
-"
+            f"💳 *Thông tin tài khoản OpenAI API:*"
+            f"- Tổng hạn mức: `${granted}`"
+            f"- Đã dùng: `${used}`"
             f"- Còn lại: `${available}`"
         )
     except Exception as e:
