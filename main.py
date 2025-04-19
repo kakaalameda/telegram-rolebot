@@ -31,16 +31,11 @@ def is_authorized_chat(update: Update) -> bool:
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "👋 Xin chào! Đây là bot AI hỗ trợ hỏi đáp. Các lệnh:
-"
-        "/ask <câu hỏi>
-"
-        "/role <vai trò bot>
-"
-        "/me <giới thiệu bạn>
-"
-        "/getid
-"
+        "👋 Xin chào! Đây là bot AI hỗ trợ hỏi đáp. Các lệnh:"
+        "/ask <câu hỏi>"
+        "/role <vai trò bot>"
+        "/me <giới thiệu bạn>"
+        "/getid"
         "/addadmin <user_id> (chỉ admin)",
         parse_mode="Markdown"
     )
