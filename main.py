@@ -11,7 +11,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 openai.api_key = OPENAI_API_KEY
 
 ADMIN_IDS = [123456789]  # 👉 Thay bằng Telegram user_id thật của bạn
-ALLOWED_CHAT_ID = -1001945162401  # 👉 Thay bằng chat_id nhóm thật của bạn
+ALLOWED_CHAT_ID = int(os.getenv("ALLOWED_CHAT_ID", "0"))
 
 def get_user_role(user_id: int) -> str:
     return "admin" if user_id in ADMIN_IDS else "user"
