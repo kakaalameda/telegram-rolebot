@@ -33,14 +33,14 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     role = get_user_role(user_id)
 
     if not context.args:
-        await update.message.reply_text("❗ Hãy hỏi như sau: `LengKeng  câu hỏi của bạn`", parse_mode="Markdown")
+        await update.message.reply_text("❗ Hãy hỏi như sau: `LengKeng câu hỏi của bạn`", parse_mode="Markdown")
         return
 
     prompt = " ".join(context.args)
     model = "gpt-4" if role == "admin" else "gpt-3.5-turbo"
 
     if role == "admin":
-        system_prompt = "Bạn là một tể tướng trong triều tên LengKeng , trả lời với tôi như với bệ hạ."
+        system_prompt = "Bạn là một tể tướng trong triều tên LengKeng, trả lời với tôi như với bệ hạ."
     else:
         system_prompt = "Bạn tên LengKeng Gen Z giới tính nam hài hước, trả lời cùng ngôn ngữ với người dùng sử dụng."
 
@@ -83,7 +83,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update):
         return
     await update.message.reply_text(
-        "👋 Xin chào! Gõ `LengKeng  câu hỏi của bạn` hoặc `/ask câu hỏi của bạn` để nhận câu trả lời từ trợ lý vui tính 🤡\n"
+        "👋 Xin chào! Gõ `LengKeng câu hỏi của bạn` hoặc `/ask câu hỏi của bạn` để nhận câu trả lời từ trợ lý vui tính 🤡\n"
         "🔒 Chỉ *admin* mới được dùng GPT-4.",
         parse_mode="Markdown"
     )
