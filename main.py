@@ -62,7 +62,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     text = update.message.text
-    if not text.lower().startswith("LengKeng "):
+    if not text.lower().startswith("lengkeng "):
         return
 
     context.args = text.split()[1:]
