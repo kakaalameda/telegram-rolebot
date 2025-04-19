@@ -42,7 +42,7 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply = response.choices[0].message.content
 
         styled_reply = (
-            f"🎭 *{username}* (`{role}`) hỏi:
+            f"🎭 *{username}* (vai trò: *{role}*) hỏi:
 "
             f"🗯️ _{prompt}_
 
