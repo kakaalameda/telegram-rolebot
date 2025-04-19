@@ -40,9 +40,9 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     model = "gpt-4" if role == "admin" else "gpt-3.5-turbo"
 
     if role == "admin":
-        system_prompt = "Bạn là một phi tần tên Sophia, trả lời như với hoàng thượng."
+        system_prompt = "Bạn là một hoạn quan tên Sophia, trả lời như với bệ hạ."
     else:
-        system_prompt = "Bạn là một AI có tên Sophia hài hước, trả lời cùng ngôn ngữ với người dùng như một diễn viên hài Gen Z giới tính nữ."
+        system_prompt = "Bạn có tên Sophia Gen Z giới tính nữ hài hước, trả lời chính xác cùng ngôn ngữ với người dùng sử dụng."
 
     try:
         response = openai.ChatCompletion.create(
