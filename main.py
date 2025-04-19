@@ -1,139 +1,89 @@
-import logging
 import os
-import openai
+from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+import openai
 
-# Logging setup
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
-logger = logging.getLogger(__name__)
-
-# Load environment variables
-BOT_TOKEN = os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_TOKEN")
+load_dotenv()
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ALLOWED_CHAT_ID = int(os.getenv("ALLOWED_CHAT_ID", "0"))
 
-if not BOT_TOKEN or not OPENAI_API_KEY:
-    logger.error("Missing BOT_TOKEN or OPENAI_API_KEY")
-    raise SystemExit("Missing BOT_TOKEN or OPENAI_API_KEY")
-
 openai.api_key = OPENAI_API_KEY
-ADMIN_IDS = {993884797}
-user_context = {}
 
-def is_authorized_chat(update: Update) -> bool:
-    chat_id = update.effective_chat.id
+ADMIN_IDS = [993884797]  # 👉 Thay bằng Telegram user_id thật của bạn
+
+def get_user_role(user_id: int) -> str:
+    return "admin" if user_id in ADMIN_IDS else "user"
+
+def is_authorized(update: Update) -> bool:
+    return update.effective_chat.id == ALLOWED_CHAT_ID
+
+async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_authorized(update):
+        return
+
     user_id = update.effective_user.id
-    return ALLOWED_CHAT_ID == 0 or chat_id == ALLOWED_CHAT_ID or user_id in ADMIN_IDS
+    username = update.effective_user.username or update.effective_user.first_name
+    role = get_user_role(user_id)
+
+    if not context.args:
+        await update.message.reply_text("❗ Hãy hỏi như sau: `/ask câu hỏi của bạn`", parse_mode="Markdown")
+        return
+
+    prompt = " ".join(context.args)
+    model = "gpt-4" if role == "admin" else "gpt-3.5-turbo"
+
+    if role == "admin":
+        system_prompt = "Bạn là một phi tần tên Sophia, trả lời như với hoàng thượng."
+    else:
+        system_prompt = "Bạn là một AI có tên Sophia hài hước, trả lời cùng ngôn ngữ với người dùng như một diễn viên hài Gen Z giới tính nữ."
+
+    try:
+        response = openai.ChatCompletion.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        reply = response.choices[0].message.content
+        await update.message.reply_text(reply, parse_mode="Markdown")
+    except Exception as e:
+        await update.message.reply_text(f"❌ Lỗi: {str(e)}")
+
+async def getid(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    await update.message.reply_text(f"🆔 Chat ID hiện tại là: `{chat_id}`", parse_mode="Markdown")
+
+async def role(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_authorized(update):
+        return
+    user_id = update.effective_user.id
+    role = get_user_role(user_id)
+    await update.message.reply_text(f"👤 Vai trò của bạn là: *{role}*", parse_mode="Markdown")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_authorized(update):
+        return
     await update.message.reply_text(
-        "👋 Xin chào! Đây là bot AI hỗ trợ hỏi đáp. Các lệnh:"
-        "/ask <câu hỏi>"
-        "/role <vai trò bot>"
-        "/me <giới thiệu bạn>"
-        "/getid"
-        "/addadmin <user_id> (chỉ admin)",
+        "👋 Xin chào! Gõ `/ask câu hỏi của bạn` để nhận câu trả lời từ trợ lý vui tính 🤡\\n"
+        "🔒 Chỉ *admin* mới được dùng GPT-4.",
         parse_mode="Markdown"
     )
 
-async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not is_authorized_chat(update):
-        await update.message.reply_text("❌ Bạn không có quyền sử dụng bot này.")
-        return
+app = ApplicationBuilder().token(BOT_TOKEN).build()
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("role", role))
+app.add_handler(CommandHandler("ask", ask))
+app.add_handler(CommandHandler("getid", getid))
 
-    user_id = update.effective_user.id
-    question = " ".join(context.args)
-    if not question:
-        await update.message.reply_text("❗ Hãy nhập câu hỏi sau /ask.")
-        return
+app.run_polling()
+"""
 
-    messages = []
-    ctx = user_context.get(user_id, {})
-    if "system" in ctx and "user" in ctx:
-        messages.append({"role": "system", "content": f"{ctx['system']}\nThông tin người dùng: {ctx['user']}"})
-    elif "system" in ctx:
-        messages.append({"role": "system", "content": ctx["system"]})
-    elif "user" in ctx:
-        messages.append({"role": "system", "content": f"Thông tin người dùng: {ctx['user']}"})
-    messages.append({"role": "user", "content": question})
+# Ghi ra file main.py
+final_main_path = "/mnt/data/main.py"
+with open(final_main_path, "w") as f:
+    f.write(final_role_split_code.strip())
 
-    model = "gpt-4" if user_id in ADMIN_IDS else "gpt-3.5-turbo"
-    try:
-        response = openai.ChatCompletion.create(model=model, messages=messages, temperature=0.7)
-        reply = response.choices[0].message.content
-        await update.message.reply_text(reply)
-    except Exception as e:
-        logger.error("OpenAI error: %s", e)
-        await update.message.reply_text("❌ Đã xảy ra lỗi khi gọi OpenAI API.")
-
-async def role(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not is_authorized_chat(update):
-        await update.message.reply_text("❌ Bạn không có quyền.")
-        return
-
-    user_id = update.effective_user.id
-    role_text = " ".join(context.args)
-    user_context.setdefault(user_id, {})
-    if role_text:
-        user_context[user_id]["system"] = role_text
-        await update.message.reply_text(f"✅ Đã đặt vai trò: *{role_text}*", parse_mode="Markdown")
-    else:
-        user_context[user_id].pop("system", None)
-        await update.message.reply_text("🔁 Đã xóa vai trò bot.")
-
-async def me(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not is_authorized_chat(update):
-        await update.message.reply_text("❌ Bạn không có quyền.")
-        return
-
-    user_id = update.effective_user.id
-    info = " ".join(context.args)
-    user_context.setdefault(user_id, {})
-    if info:
-        user_context[user_id]["user"] = info
-        await update.message.reply_text("✅ Đã cập nhật thông tin cá nhân.")
-    else:
-        user_context[user_id].pop("user", None)
-        await update.message.reply_text("🔁 Đã xóa thông tin cá nhân.")
-
-async def getid(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    chat_id = update.effective_chat.id
-    await update.message.reply_text(f"🆔 User ID: `{user_id}`\n💬 Chat ID: `{chat_id}`", parse_mode="Markdown")
-
-async def addadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    requester_id = update.effective_user.id
-    if requester_id not in ADMIN_IDS:
-        await update.message.reply_text("🚫 Bạn không phải admin.")
-        return
-
-    target_id = None
-    if update.message.reply_to_message:
-        target_id = update.message.reply_to_message.from_user.id
-    elif context.args and context.args[0].isdigit():
-        target_id = int(context.args[0])
-
-    if not target_id:
-        await update.message.reply_text("❗ Dùng: /addadmin <user_id> hoặc reply tin nhắn.")
-    elif target_id in ADMIN_IDS:
-        await update.message.reply_text(f"ℹ️ `{target_id}` đã là admin.", parse_mode="Markdown")
-    else:
-        ADMIN_IDS.add(target_id)
-        await update.message.reply_text(f"✅ `{target_id}` đã được thêm làm admin.", parse_mode="Markdown")
-
-def main():
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("ask", ask))
-    app.add_handler(CommandHandler("role", role))
-    app.add_handler(CommandHandler("me", me))
-    app.add_handler(CommandHandler("getid", getid))
-    app.add_handler(CommandHandler("addadmin", addadmin))
-    app.run_polling()
-
-if __name__ == "__main__":
-    main()
+final_main_path
