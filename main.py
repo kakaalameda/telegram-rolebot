@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import openai
+import requests
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -10,7 +11,6 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 openai.api_key = OPENAI_API_KEY
 
-# Admin ID - chỉ những người này mới được dùng GPT-4
 ADMIN_IDS = [123456789]  # 👉 Thay bằng Telegram user_id thật của bạn
 
 def get_user_role(user_id: int) -> str:
@@ -28,7 +28,6 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prompt = " ".join(context.args)
     model = "gpt-4" if role == "admin" else "gpt-3.5-turbo"
 
-    # Vai trò nhân vật của ChatGPT: Trợ lý vui tính
     system_prompt = "Bạn là một AI hài hước, trả lời như một diễn viên hài."
 
     try:
@@ -51,6 +50,27 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"❌ Lỗi: {str(e)}")
 
+async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
+    try:
+        res = requests.get("https://api.openai.com/dashboard/billing/credit_grants", headers=headers)
+        data = res.json()
+        granted = data.get("total_granted", 0)
+        used = data.get("total_used", 0)
+        available = data.get("total_available", 0)
+        reply = (
+            f"💳 *Thông tin tài khoản OpenAI API:*
+"
+            f"- Tổng hạn mức: `${granted}`
+"
+            f"- Đã dùng: `${used}`
+"
+            f"- Còn lại: `${available}`"
+        )
+    except Exception as e:
+        reply = f"❌ Không thể kiểm tra số dư: {str(e)}"
+    await update.message.reply_text(reply, parse_mode="Markdown")
+
 async def role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     role = get_user_role(user_id)
@@ -67,5 +87,6 @@ app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("role", role))
 app.add_handler(CommandHandler("ask", ask))
+app.add_handler(CommandHandler("check", check))
 
 app.run_polling()
