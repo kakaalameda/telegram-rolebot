@@ -58,14 +58,18 @@ async def getid(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def me(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    await update.message.reply_text(f"🧑‍💻 user_id của bạn là: `{user_id}`", parse_mode="Markdown")
+    await update.message.reply_text(f"🧑‍💻 user_id của bạn là: `{str(user_id)}`", parse_mode="Markdown")
 
 async def role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update):
         return
     user_id = update.effective_user.id
     role = get_user_role(user_id)
-    await update.message.reply_text(f"👤 Vai trò của bạn là: *{role}*", parse_mode="Markdown")
+    await update.message.reply_text(
+    f"🧑‍💻 user_id của bạn là: `{str(user_id)}`",
+    parse_mode="Markdown"
+)
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update):
