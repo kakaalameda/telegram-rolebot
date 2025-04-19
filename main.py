@@ -5,9 +5,11 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 import openai
 
+# Bật log để debug khi cần
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Load biến môi trường
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -25,11 +27,9 @@ def is_authorized(update: Update) -> bool:
 
 async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update):
-        logger.info("Unauthorized chat ID: %s", update.effective_chat.id)
         return
 
     user_id = update.effective_user.id
-    username = update.effective_user.username or update.effective_user.first_name
     role = get_user_role(user_id)
 
     if not context.args:
@@ -44,8 +44,6 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         system_prompt = "Bạn là một AI có tên Sophia hài hước, trả lời cùng ngôn ngữ với người dùng như một diễn viên hài Gen Z giới tính nữ."
 
-    logger.info("Sending prompt: %s", prompt)
-
     try:
         response = openai.ChatCompletion.create(
             model=model,
@@ -57,17 +55,13 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply = response.choices[0].message.content
         await update.message.reply_text(reply, parse_mode="Markdown")
     except Exception as e:
-        logger.error("Error from OpenAI: %s", e)
         await update.message.reply_text(f"❌ Lỗi: {str(e)}")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update):
-        logger.info("Unauthorized message from chat ID: %s", update.effective_chat.id)
         return
 
     text = update.message.text
-    logger.info("Received message: %s", text)
-
     if not text.lower().startswith("sophia "):
         return
 
@@ -89,11 +83,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update):
         return
     await update.message.reply_text(
-        "👋 Xin chào! Gõ `Sophia câu hỏi của bạn` để nhận câu trả lời từ trợ lý vui tính 🤡\n"
+        "👋 Xin chào! Gõ `Sophia câu hỏi của bạn` hoặc `/ask câu hỏi của bạn` để nhận câu trả lời từ trợ lý vui tính 🤡\n"
         "🔒 Chỉ *admin* mới được dùng GPT-4.",
         parse_mode="Markdown"
     )
 
+# Tạo app và thêm handler
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("role", role))
