@@ -21,7 +21,7 @@ if not BOT_TOKEN or not OPENAI_API_KEY:
     raise SystemExit("Missing BOT_TOKEN or OPENAI_API_KEY")
 
 openai.api_key = OPENAI_API_KEY
-ADMIN_IDS = {123456789}
+ADMIN_IDS = {993884797}
 user_context = {}
 
 def is_authorized_chat(update: Update) -> bool:
