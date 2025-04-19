@@ -35,7 +35,7 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     model = "gpt-4" if role == "admin" else "gpt-3.5-turbo"
 
     if role == "admin":
-        system_prompt = "Bạn là một phi tần trong cung, trả lời như đang nói chuyện với hoàng thượng"
+        system_prompt = "Bạn là một trợ lý AI chuyên nghiệp, trả lời ngắn gọn, chính xác và lịch sự như một chuyên gia."
     else:
         system_prompt = "Bạn là một AI có tên Sophia hài hước, trả lời cùng ngôn ngữ với người dùng như một diễn viên hài Gen Z."
 
@@ -55,6 +55,10 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def getid(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     await update.message.reply_text(f"🆔 Chat ID hiện tại là: `{chat_id}`", parse_mode="Markdown")
+
+async def me(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    await update.message.reply_text(f"🧑‍💻 user_id của bạn là: `{user_id}`", parse_mode="Markdown")
 
 async def role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update):
@@ -77,5 +81,6 @@ app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("role", role))
 app.add_handler(CommandHandler("ask", ask))
 app.add_handler(CommandHandler("getid", getid))
+app.add_handler(CommandHandler("me", me))
 
 app.run_polling()
