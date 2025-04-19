@@ -5,7 +5,6 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 import openai
 
-# Bật logging để debug dễ hơn
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -16,7 +15,7 @@ ALLOWED_CHAT_ID = int(os.getenv("ALLOWED_CHAT_ID", "0"))
 
 openai.api_key = OPENAI_API_KEY
 
-ADMIN_IDS = [993884797]  # 👉 Thay bằng Telegram user_id thật của bạn
+ADMIN_IDS = [993884797]  # Thay bằng user_id của bạn
 
 def get_user_role(user_id: int) -> str:
     return "admin" if user_id in ADMIN_IDS else "user"
@@ -45,7 +44,7 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         system_prompt = "Bạn là một AI có tên Sophia hài hước, trả lời cùng ngôn ngữ với người dùng như một diễn viên hài Gen Z giới tính nữ."
 
-    logger.info("Sending request to OpenAI: %s", prompt)
+    logger.info("Sending prompt: %s", prompt)
 
     try:
         response = openai.ChatCompletion.create(
@@ -58,7 +57,7 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply = response.choices[0].message.content
         await update.message.reply_text(reply, parse_mode="Markdown")
     except Exception as e:
-        logger.error("OpenAI error: %s", e)
+        logger.error("Error from OpenAI: %s", e)
         await update.message.reply_text(f"❌ Lỗi: {str(e)}")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -70,10 +69,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info("Received message: %s", text)
 
     if not text.lower().startswith("sophia "):
-        logger.info("Ignored message (does not start with 'sophia '): %s", text)
         return
 
-    context.args = text.split()[1:]  # Bỏ từ "Sophia"
+    context.args = text.split()[1:]
     await ask(update, context)
 
 async def getid(update: Update, context: ContextTypes.DEFAULT_TYPE):
