@@ -33,16 +33,16 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     role = get_user_role(user_id)
 
     if not context.args:
-        await update.message.reply_text("❗ Hãy hỏi như sau: `Sophia câu hỏi của bạn`", parse_mode="Markdown")
+        await update.message.reply_text("❗ Hãy hỏi như sau: `LengKeng  câu hỏi của bạn`", parse_mode="Markdown")
         return
 
     prompt = " ".join(context.args)
     model = "gpt-4" if role == "admin" else "gpt-3.5-turbo"
 
     if role == "admin":
-        system_prompt = "Bạn là một hoạn quan tên Sophia, trả lời như với bệ hạ."
+        system_prompt = "Bạn là một hoạn quan tên LengKeng , trả lời như với bệ hạ."
     else:
-        system_prompt = "Bạn có tên Sophia Gen Z giới tính nữ hài hước, trả lời chính xác cùng ngôn ngữ với người dùng sử dụng."
+        system_prompt = "Bạn tên LengKeng Gen Z giới tính nam hài hước, trả lời chính xác cùng ngôn ngữ với người dùng sử dụng."
 
     try:
         response = openai.ChatCompletion.create(
@@ -62,7 +62,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     text = update.message.text
-    if not text.lower().startswith("sophia "):
+    if not text.lower().startswith("LengKeng "):
         return
 
     context.args = text.split()[1:]
@@ -83,7 +83,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update):
         return
     await update.message.reply_text(
-        "👋 Xin chào! Gõ `Sophia câu hỏi của bạn` hoặc `/ask câu hỏi của bạn` để nhận câu trả lời từ trợ lý vui tính 🤡\n"
+        "👋 Xin chào! Gõ `LengKeng  câu hỏi của bạn` hoặc `/ask câu hỏi của bạn` để nhận câu trả lời từ trợ lý vui tính 🤡\n"
         "🔒 Chỉ *admin* mới được dùng GPT-4.",
         parse_mode="Markdown"
     )
