@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-import openai
+import openai==0.28.1
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
