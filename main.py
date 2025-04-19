@@ -7,11 +7,11 @@ import openai
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+ALLOWED_CHAT_ID = int(os.getenv("ALLOWED_CHAT_ID", "0"))
 
 openai.api_key = OPENAI_API_KEY
 
 ADMIN_IDS = [123456789]  # 👉 Thay bằng Telegram user_id thật của bạn
-ALLOWED_CHAT_ID = int(os.getenv("ALLOWED_CHAT_ID", "0"))
 
 def get_user_role(user_id: int) -> str:
     return "admin" if user_id in ADMIN_IDS else "user"
@@ -34,7 +34,10 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prompt = " ".join(context.args)
     model = "gpt-4" if role == "admin" else "gpt-3.5-turbo"
 
-    system_prompt = "Bạn là một AI có tên Sophia hài hước, trả lời cùng ngôn ngữ với người dùng như một diễn viên hài Gen Z."
+    if role == "admin":
+        system_prompt = "Bạn là một trợ lý AI chuyên nghiệp, trả lời ngắn gọn, chính xác và lịch sự như một chuyên gia."
+    else:
+        system_prompt = "Bạn là một AI có tên Sophia hài hước, trả lời cùng ngôn ngữ với người dùng như một diễn viên hài Gen Z."
 
     try:
         response = openai.ChatCompletion.create(
