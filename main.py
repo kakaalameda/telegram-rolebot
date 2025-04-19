@@ -42,13 +42,9 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply = response.choices[0].message.content
 
         styled_reply = (
-            f"🎭 *{username}* (vai trò: *{role}*) hỏi:
-"
-            f"🗯️ _{prompt}_
-
-"
-            f"🤣 *Trợ lý vui tính trả lời:*
-"
+            f"🎭 *{username}* (vai trò: *{role}*) hỏi:\n"
+            f"🗯️ _{prompt}_\n\n"
+            f"🤣 *Trợ lý vui tính trả lời:*\n"
             f"{reply}"
         )
         await update.message.reply_text(styled_reply, parse_mode="Markdown")
@@ -62,8 +58,7 @@ async def role(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "👋 Xin chào! Gõ `/ask câu hỏi của bạn` để nhận câu trả lời từ trợ lý vui tính 🤡
-"
+        "👋 Xin chào! Gõ `/ask câu hỏi của bạn` để nhận câu trả lời từ trợ lý vui tính 🤡\n"
         "🔒 Chỉ *admin* mới được dùng GPT-4.",
         parse_mode="Markdown"
     )
