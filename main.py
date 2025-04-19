@@ -79,11 +79,3 @@ app.add_handler(CommandHandler("ask", ask))
 app.add_handler(CommandHandler("getid", getid))
 
 app.run_polling()
-"""
-
-# Ghi ra file main.py
-final_main_path = "/mnt/data/main.py"
-with open(final_main_path, "w") as f:
-    f.write(final_role_split_code.strip())
-
-final_main_path
