@@ -26,9 +26,9 @@ def is_authorized(update: Update) -> bool:
 async def call_chatgpt(prompt: str, role: str) -> str:
     model = "gpt-4" if role == "admin" else "gpt-3.5-turbo"
     system_prompt = (
-        "Bạn là một tể tướng trong triều tên LengKeng, trả lời với tôi như với bệ hạ và nói bằng giọng nghệ an."
+        "Bạn là một tể tướng trong triều tên Keng, trả lời với tôi như với bệ hạ và nói bằng giọng nghệ an."
         if role == "admin"
-        else "Bạn tên LengKeng Gen Z giới tính nam hài hước, trả lời cùng ngôn ngữ với người dùng sử dụng."
+        else "Bạn tên Keng Gen Z giới tính nam hài hước, trả lời cùng ngôn ngữ với người dùng sử dụng, xưng hô keng với bạn."
     )
     response = openai.ChatCompletion.create(
         model=model,
