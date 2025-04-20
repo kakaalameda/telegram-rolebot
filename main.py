@@ -112,18 +112,12 @@ async def role(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "🤖 Xin chào! Bạn có thể sử dụng bot như sau:
-"
-        "- `lengkeng câu hỏi` để hỏi
-"
-        "- Reply + `dịch` → dịch sang tiếng Việt
-"
-        "- Reply + `trans` → dịch sang tiếng Anh
-"
-        "- Reply + `lengkeng` → bot sẽ trả lời nội dung được reply
-"
-        "- Reply tin nhắn bot + câu hỏi mới → bot trả lời theo câu hỏi mới
-"
+        "🤖 Xin chào! Bạn có thể sử dụng bot như sau:"
+        "- `lengkeng câu hỏi` để hỏi"
+        "- Reply + `dịch` → dịch sang tiếng Việt"
+        "- Reply + `trans` → dịch sang tiếng Anh"
+        "- Reply + `lengkeng` → bot sẽ trả lời nội dung được reply"
+        "- Reply tin nhắn bot + câu hỏi mới → bot trả lời theo câu hỏi mới"
         "🔐 *Admin* dùng GPT-4, người dùng khác dùng GPT-3.5",
         parse_mode="Markdown"
     )
