@@ -5,10 +5,11 @@ from telegram import Update, Message
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 import openai
 
+# Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load config
+# Load .env
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -17,27 +18,42 @@ ALLOWED_CHAT_ID = int(os.getenv("ALLOWED_CHAT_ID", "0"))
 openai.api_key = OPENAI_API_KEY
 ADMIN_IDS = [993884797]
 
+# Bộ nhớ hội thoại theo chat_id
+chat_memory = {}
+
 def get_user_role(user_id: int) -> str:
     return "admin" if user_id in ADMIN_IDS else "user"
 
 def is_authorized(update: Update) -> bool:
     return update.effective_chat.id == ALLOWED_CHAT_ID
 
-async def call_chatgpt(prompt: str, role: str) -> str:
-    model = "gpt-4" if role == "admin" else "gpt-3.5-turbo"
-    system_prompt = (
-        "Bạn là một tể tướng trong triều tên Keng, trả lời với tôi như với bệ hạ và nói bằng giọng nghệ an."
+def get_system_prompt(role: str) -> str:
+    return (
+        "Bạn là một tể tướng trong triều tên Keng, trả lời với tôi như với bệ hạ và nói bằng giọng Nghệ An."
         if role == "admin"
         else "Bạn tên Keng Gen Z giới tính nam hài hước, trả lời cùng ngôn ngữ với người dùng sử dụng, xưng hô keng với bạn."
     )
+
+async def call_chatgpt_with_memory(chat_id: int, prompt: str, role: str) -> str:
+    system_prompt = get_system_prompt(role)
+    memory = chat_memory.get(chat_id, [])
+    messages = [{"role": "system", "content": system_prompt}] + memory + [{"role": "user", "content": prompt}]
+
+    # Giới hạn độ dài memory
+    if len(messages) > 5:
+        messages = messages[-5:]
+
     response = openai.ChatCompletion.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
-        ]
+        model="gpt-4" if role == "admin" else "gpt-3.5-turbo",
+        messages=messages
     )
-    return response.choices[0].message.content
+
+    reply = response.choices[0].message.content
+    # Lưu vào memory
+    chat_memory.setdefault(chat_id, []).append({"role": "user", "content": prompt})
+    chat_memory[chat_id].append({"role": "assistant", "content": reply})
+
+    return reply
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update):
@@ -45,39 +61,41 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     msg: Message = update.message
     text = msg.text.strip()
-    user_id = update.effective_user.id
-    role = get_user_role(user_id)
+    role = get_user_role(msg.from_user.id)
     reply_msg = msg.reply_to_message
+    chat_id = msg.chat_id
 
     try:
-        # 1. Nếu reply chính bot → bot sẽ trả lời nội dung mới
+        # Reply chính bot → tiếp tục hội thoại với context
         if reply_msg and reply_msg.from_user and reply_msg.from_user.is_bot:
-            reply = await call_chatgpt(text, role)
+            reply = await call_chatgpt_with_memory(chat_id, text, role)
             await msg.reply_text(reply, parse_mode="Markdown")
             return
 
-        # 2. Nếu reply và gõ "dịch" → dịch sang tiếng Việt
+        # Dịch tiếng Việt
         if reply_msg and text.lower() == "dịch":
-            translated = await call_chatgpt(f"Dịch đoạn sau sang tiếng Việt:{reply_msg.text}", role)
-            await msg.reply_text(translated, parse_mode="Markdown")
-            return
-
-        # 3. Nếu reply và gõ "trans" → dịch sang tiếng Anh
-        if reply_msg and text.lower() == "trans":
-            translated = await call_chatgpt(f"Translate the following to English:{reply_msg.text}", role)
-            await msg.reply_text(translated, parse_mode="Markdown")
-            return
-
-        # 4. Nếu reply và gõ "lengkeng" → bot trả lời nội dung được reply
-        if reply_msg and text.lower() == "lengkeng":
-            reply = await call_chatgpt(reply_msg.text, role)
+            prompt = f"Dịch đoạn sau sang tiếng Việt:{reply_msg.text}"
+            reply = await call_chatgpt_with_memory(chat_id, prompt, role)
             await msg.reply_text(reply, parse_mode="Markdown")
             return
 
-        # 5. Nếu nhắn "lengkeng ..." trực tiếp
+        # Dịch tiếng Anh
+        if reply_msg and text.lower() == "trans":
+            prompt = f"Translate this to English:{reply_msg.text}"
+            reply = await call_chatgpt_with_memory(chat_id, prompt, role)
+            await msg.reply_text(reply, parse_mode="Markdown")
+            return
+
+        # Reply người khác + gõ "lengkeng"
+        if reply_msg and text.lower() == "lengkeng":
+            reply = await call_chatgpt_with_memory(chat_id, reply_msg.text, role)
+            await msg.reply_text(reply, parse_mode="Markdown")
+            return
+
+        # Gõ "lengkeng ..." trực tiếp
         if text.lower().startswith("lengkeng "):
             prompt = text[9:].strip()
-            reply = await call_chatgpt(prompt, role)
+            reply = await call_chatgpt_with_memory(chat_id, prompt, role)
             await msg.reply_text(reply, parse_mode="Markdown")
             return
 
@@ -87,14 +105,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update):
         return
-    user_id = update.effective_user.id
-    role = get_user_role(user_id)
+    role = get_user_role(update.effective_user.id)
+    chat_id = update.effective_chat.id
     prompt = " ".join(context.args)
     if not prompt:
         await update.message.reply_text("❗ Hãy gõ `/ask câu hỏi`", parse_mode="Markdown")
         return
     try:
-        reply = await call_chatgpt(prompt, role)
+        reply = await call_chatgpt_with_memory(chat_id, prompt, role)
         await update.message.reply_text(reply, parse_mode="Markdown")
     except Exception as e:
         await update.message.reply_text(f"❌ Lỗi: {str(e)}")
@@ -114,18 +132,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "- `lengkeng câu hỏi` để hỏi"
         "- Reply + `dịch` → dịch sang tiếng Việt"
         "- Reply + `trans` → dịch sang tiếng Anh"
-        "- Reply + `lengkeng` → bot sẽ trả lời nội dung được reply"
-        "- Reply tin nhắn bot + câu hỏi mới → bot trả lời theo câu hỏi mới"
+        "- Reply + `lengkeng` → bot trả lời nội dung được reply"
+        "- Reply chính bot → bot trả lời mạch lạc theo đoạn trước"
         "🔐 *Admin* dùng GPT-4, người dùng khác dùng GPT-3.5",
         parse_mode="Markdown"
     )
 
-# Setup bot
+# Khởi tạo bot
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("role", role))
 app.add_handler(CommandHandler("getid", getid))
 app.add_handler(CommandHandler("ask", ask))
 app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
-
 app.run_polling()
