@@ -106,10 +106,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update):
         return
     await update.message.reply_text(
-        "👋 Gõ `LengKeng câu hỏi của bạn` hoặc `/ask câu hỏi của bạn`
-"
-        "↩️ Hoặc reply tin nhắn và gõ `lengkeng` để bot trả lời hoặc dịch.
-"
+        "👋 Gõ `LengKeng câu hỏi của bạn` hoặc `/ask câu hỏi của bạn`"
+        "↩️ Hoặc reply tin nhắn và gõ `lengkeng` để bot trả lời hoặc dịch."
         "🔒 *Admin* được dùng GPT-4, người dùng khác dùng GPT-3.5.",
         parse_mode="Markdown"
     )
