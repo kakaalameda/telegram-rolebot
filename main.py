@@ -58,15 +58,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # 2. Nếu reply và gõ "dịch" → dịch sang tiếng Việt
         if reply_msg and text.lower() == "dịch":
-            translated = await call_chatgpt(f"Dịch đoạn sau sang tiếng Việt:
-{reply_msg.text}", role)
+            translated = await call_chatgpt(f"Dịch đoạn sau sang tiếng Việt:{reply_msg.text}", role)
             await msg.reply_text(translated, parse_mode="Markdown")
             return
 
         # 3. Nếu reply và gõ "trans" → dịch sang tiếng Anh
         if reply_msg and text.lower() == "trans":
-            translated = await call_chatgpt(f"Translate the following to English:
-{reply_msg.text}", role)
+            translated = await call_chatgpt(f"Translate the following to English:{reply_msg.text}", role)
             await msg.reply_text(translated, parse_mode="Markdown")
             return
 
